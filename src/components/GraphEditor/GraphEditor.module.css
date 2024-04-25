@@ -9,7 +9,7 @@
 	pointer-events: none;
 	stroke: rebeccapurple;
 	vector-effect: non-scaling-stroke;
-	shape-rendering: crispEdges;
+	shape-rendering: geometricPrecision;
 }
 
 
@@ -19,7 +19,7 @@
 	stroke: lightblue;
 	stroke-opacity: 0.5;
 	vector-effect: non-scaling-stroke;
-	shape-rendering: crispEdges;
+	shape-rendering: geometricPrecision;
 }
 
 .gridLinesPolar {
@@ -28,7 +28,7 @@
 	stroke: lightcoral;
 	stroke-opacity: 0.3;
 	vector-effect: non-scaling-stroke;
-	shape-rendering: crispEdges;
+	shape-rendering: geometricPrecision;
 }
 
 .axisLabel {
@@ -97,7 +97,7 @@
 	fill: none;
 	pointer-events: none;
 	vector-effect: non-scaling-stroke;
-	shape-rendering: crispEdges;
+	shape-rendering: geometricPrecision;
 }
 
 .sliderBox {
@@ -115,6 +115,7 @@
 }
 
 .sliderLabel {
-	min-width: 1.5em;
+	min-width: 3em;
 	text-align: center;
+	font-family: monospace;
 }

@@ -11,7 +11,6 @@ function EditorCartesianAxis(props) {
   const aspectScale = () => Math.max(aspectRatio(), 1/aspectRatio())
 
   return (<>
-    <path class={styles.gridLinesCartesian} d={utils.minMaxGridPath(vis(), 32* aspectScale() * (props.zoom()))} />
     <path class={styles.axisLine} d={utils.minMaxCrossPath(vis())} />
     <path class={styles.arrowHead} d={utils.minMaxCrossArrowPath(vis(), aspectScale() / 2)} />
     <text font-size="18" class={[styles.axisLabel, styles.textRight, styles.textBottom].join(" ")} x={vis().max.x - 30} y="-10">X</text>
@@ -19,7 +18,18 @@ function EditorCartesianAxis(props) {
   </>)
 }
 
-function EditorPolarAxis(props) {
+function EditorCartesianGrid(props) {
+  const [vb, {eventToLocal, visibleRange: vis}] = useViewBox()
+
+  const aspectRatio = () => (vis().max.x - vis().min.x)/(vis().max.y - vis().min.y)
+  const aspectScale = () => Math.max(aspectRatio(), 1/aspectRatio())
+
+  return (<>
+    <path class={styles.gridLinesCartesian} d={utils.minMaxGridPath(vis(), 32* aspectScale() * (props.zoom()))} />
+  </>)
+}
+
+function EditorPolarGrid(props) {
   const [vb, {eventToLocal, visibleRange: vis}] = useViewBox()
 
   const aspectRatio = () => (vis().max.x - vis().min.x)/(vis().max.y - vis().min.y)
@@ -40,7 +50,7 @@ function EditorContent(props) {
     evt.currentTarget.setPointerCapture(evt.pointerId);
     const oldPos = pos()
     const clickPos = eventToLocal(evt)
-    setPressed({x: (clickPos.x - oldPos.x), y: (clickPos.y - oldPos.y)})
+    setPressed({x: (clickPos.x - oldPos.x*props.zoom())/props.zoom(), y: (clickPos.y - oldPos.y*props.zoom())/props.zoom()})
   }
 
   function release(evt) {
@@ -52,18 +62,21 @@ function EditorContent(props) {
     if(pressed()) {
       const newPos = eventToLocal(evt)
       const basePos = pressed()
-      setPos({x: (newPos.x - basePos.x), y: (newPos.y - basePos.y)})
+      setPos({x: (newPos.x/props.zoom() - basePos.x), y: (newPos.y/props.zoom() - basePos.y)})
     }
   }
 
+  const x = () => pos().x * props.zoom()
+  const y = () => pos().y * props.zoom()
 
   return (<>    
     <path class={styles.paper} d={utils.minMaxRectPath(vis())} />
     <path class={styles.debugMargin} d={utils.minMaxRectPath(vis(),  5)} />
-    <EditorPolarAxis zoom={props.zoom} />
+    <EditorPolarGrid zoom={props.zoom} />
+    <EditorCartesianGrid zoom={props.zoom} />
+    <path class={styles.edge} d={utils.straightLinePath(0,0,x(),y())} />
+    <circle cursor="move" onPointerDown={grab} onPointerUp={release} onPointerMove={drag} cx={x()} cy={y()} class={styles.node} r="20"/>
     <EditorCartesianAxis zoom={props.zoom} />
-    <path class={styles.edge} d={utils.straightLinePath(0,0,pos().x,pos().y)} />
-    <circle cursor="move" onPointerDown={grab} onPointerUp={release} onPointerMove={drag} cx={pos().x} cy={pos().y} class={styles.node} r="20"/>
   </>)
 }
 
@@ -72,7 +85,7 @@ function GraphEditor() {
 
 
   function scroll(evt) {
-    setZoom(Math.round(utils.clamp(1, 10, zoom() + evt.wheelDelta/100)))
+    setZoom((utils.clamp(1, 10, zoom() + evt.wheelDelta/500)))
   }
 
 
@@ -82,8 +95,8 @@ function GraphEditor() {
     </Canvas>
     <div class={styles.overlay}>
       <label class={styles.sliderBox}>
-        <input class={styles.slider} type="range" min="1" max="10" value={zoom()} onInput={e => setZoom(e.currentTarget.valueAsNumber)} />
-        <span class={styles.sliderLabel}>{zoom}</span>
+        <input class={styles.slider} type="range" min="1" max="10" step="0.0001" value={zoom()} onInput={e => setZoom(e.currentTarget.valueAsNumber)} />
+        <span class={styles.sliderLabel}>{() => Math.round(zoom()*100)/100}</span>
       </label>
     </div>
   </>);

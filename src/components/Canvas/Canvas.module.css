@@ -5,10 +5,10 @@
 }
 
 .debug {
-	stroke-width: 1;
+	stroke-width: 1px;
 	stroke: magenta;
 	fill: none;
 	pointer-events: none;
 	vector-effect: non-scaling-stroke;
-	shape-rendering: crispEdges;
+	shape-rendering: geometricPrecision;
 }

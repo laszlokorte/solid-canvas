@@ -1,3 +1,4 @@
+import {lineClip} from './CohenSutherland'
 
 export function minMaxRectPath(bounds, inset = 0) {
   return `M${bounds.min.x+inset},${bounds.min.y+inset}H${bounds.max.x-inset}V${bounds.max.y-inset}H${bounds.min.x+inset}z`
@@ -33,6 +34,37 @@ export function minMaxPolarRingsPath(bounds, gap) {
   return rings
 }
 
+
+export function minMaxPolarRaysPath(bounds, count, offset = 0) {
+  const radius = Math.max(bounds.min.y, bounds.min.x, bounds.max.y, bounds.max.x)
+  const offsetAngle = 360/count * offset
+  const rings = gappedSteps(0, 360, 360/count).reduce((acc, angle) => {
+
+    return `${acc}${straightLinePathClipped(bounds, 0,0,Math.cos(degree2Rad(angle+offsetAngle))*radius,Math.sin(degree2Rad(angle+offsetAngle))*radius)}`;
+  }, '')
+
+  return rings
+}
+
+const tempLine = {x0:0,y0:0,x1:0,y1:0}
+
+export function straightLinePathClipped(bounds, startx, starty, endx, endy) {
+  tempLine.x0 = startx
+  tempLine.y0 = starty
+  tempLine.x1 = endx
+  tempLine.y1 = endy
+
+  if(lineClip(bounds, tempLine)) {
+    return `M${tempLine.x0},${tempLine.y0}L${tempLine.x1},${tempLine.y1}`
+  } else {
+    return ''
+  }
+}
+
+export function straightLinePath(startx, starty, endx, endy) {
+  return `M${startx},${starty}L${endx},${endy}`
+}
+
 export function degree2Rad(deg) {
   return deg/180 * Math.PI
 }
@@ -43,19 +75,4 @@ export function rad2Degree(deg) {
 
 export function clamp(min, max, v) {
   return Math.min(Math.max(min, v), max)
-}
-
-export function minMaxPolarRaysPath(bounds, count, offset = 0) {
-  const radius = Math.max(bounds.min.y, bounds.min.x, bounds.max.y, bounds.max.x)
-  const offsetAngle = 360/count * offset
-  const rings = gappedSteps(0, 360, 360/count).reduce((acc, angle) => {
-
-    return `${acc}M0,0L${Math.cos(degree2Rad(angle+offsetAngle))*radius},${Math.sin(degree2Rad(angle+offsetAngle))*radius}`;
-  }, '')
-
-  return rings
-}
-
-export function straightLinePath(startx, starty, endx, endy) {
-  return `M${startx},${starty}L${endx},${endy}`
 }

@@ -76,13 +76,13 @@ export function aspectRatioString(viewBox) {
 
 
 export function viewBoxString(viewBox) {
-	return `${viewBox.minX} ${viewBox.minY} ${viewBox.width} ${viewBox.height}`
+	return `${Math.round(viewBox.minX)} ${Math.round(viewBox.minY)} ${Math.round(viewBox.width)} ${Math.round(viewBox.height)}`
 }
 
 
 
 export function viewBoxPath(viewBox, inset) {
-	return `M${viewBox.minX+inset},${viewBox.minY+inset}h${viewBox.width-inset*2}v${viewBox.height-inset*2}h${-viewBox.width-inset*2}z`
+	return `M${Math.round(viewBox.minX+inset)},${Math.round(viewBox.minY+inset)}h${Math.round(viewBox.width-inset*2)}v${Math.round(viewBox.height-inset*2)}h${Math.round(-viewBox.width-inset*2)}z`
 }
 
 const aspectStringPattern = new RegExp("x(?<x>M(?:ax|id|in))Y(?<y>M(?:ax|id|in))(?:\\s+(?<ratio>meet|slice|none))?")
