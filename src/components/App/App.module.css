@@ -1,0 +1,20 @@
+.App {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100svw;
+  height: 100svh;
+  background: #333;
+  padding: 0;
+  display: grid;
+  grid-template: 1fr;
+  place-content: stretch;
+}
+
+.App > * {
+  grid-area: 1 / 1;
+}
+
+.link {
+  color: #b318f0;
+}

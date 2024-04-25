@@ -1,0 +1,120 @@
+.paper {
+	fill: white;
+	pointer-events: all;
+	stroke: lightblue;
+}
+
+.axisLine {
+	fill: none;
+	pointer-events: none;
+	stroke: rebeccapurple;
+	vector-effect: non-scaling-stroke;
+	shape-rendering: crispEdges;
+}
+
+
+.gridLinesCartesian {
+	fill: none;
+	pointer-events: none;
+	stroke: lightblue;
+	stroke-opacity: 0.5;
+	vector-effect: non-scaling-stroke;
+	shape-rendering: crispEdges;
+}
+
+.gridLinesPolar {
+	fill: none;
+	pointer-events: none;
+	stroke: lightcoral;
+	stroke-opacity: 0.3;
+	vector-effect: non-scaling-stroke;
+	shape-rendering: crispEdges;
+}
+
+.axisLabel {
+	font-family: serif;
+	text-anchor: middle;
+	dominant-baseline: middle;
+	stroke: white;
+	stroke-width: 3;
+	paint-order: stroke;
+}
+
+.text-right {
+	font-family: serif;
+	text-anchor: end;
+}
+
+.text-left {
+	text-anchor: start;
+}
+
+.text-top {
+	dominant-baseline: top;
+}
+
+.text-bottom {
+	dominant-baseline: bottom;
+}
+
+.node {
+	fill: darkcyan;
+	stroke: white;
+	stroke-width: 5;
+}
+
+.edge {
+	fill: none;
+	stroke: #333;
+	stroke-width: 5;
+	pointer-events: none;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+.arrowHead {
+	fill: rebeccapurple;
+	stroke: white;
+	pointer-events: none;
+}
+
+.overlay {
+	pointer-events: none;
+	place-self: end;
+	padding: 0.5em 1em;
+}
+
+.overlay input, 
+.overlay button, 
+.overlay label, 
+.overlay textarea, 
+.overlay select {
+	pointer-events: all;
+}
+
+.debugMargin {
+	stroke: red;
+	fill: none;
+	pointer-events: none;
+	vector-effect: non-scaling-stroke;
+	shape-rendering: crispEdges;
+}
+
+.sliderBox {
+	display: flex;
+	gap: 1em;
+	align-items: center;
+	font-family: serif;
+}
+
+.slider {
+	margin: 0;
+	padding: 0.3em;
+	accent-color: purple;
+	cursor: e-resize;
+}
+
+.sliderLabel {
+	min-width: 1.5em;
+	text-align: center;
+}
