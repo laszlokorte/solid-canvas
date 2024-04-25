@@ -8,9 +8,9 @@ export default createMachine({
     anchorX: 0,
     anchorY: 0,
   },
-  initial: "resting",
+  initial: "idle",
   states: {
-    resting: {
+    idle: {
       entry: [
         assign({
           anchorX: 0,
@@ -18,6 +18,15 @@ export default createMachine({
         })
       ],
       on: {
+        'cam.reset': {
+          actions: assign({
+            x: 0,
+            y: 0,
+            zoom: 1,
+            anchorX: 0,
+            anchorY: 0,
+          }),
+        },
         'cam.zoom.in': {
           actions: assign({
             zoom: ({ context }) => context.zoom + 1,
@@ -55,6 +64,15 @@ export default createMachine({
         })
       },
       on: {
+        'cam.reset': {
+          actions: assign({
+            x: 0,
+            y: 0,
+            zoom: 1,
+            anchorX: 0,
+            anchorY: 0,
+          }),
+        },
         'cam.zoom.in': {
           actions: assign({
             zoom: ({ context }) => context.zoom + 1,
@@ -76,7 +94,7 @@ export default createMachine({
           }),
         },
         'camera.pan.release': {
-          target: 'resting'
+          target: 'idle'
         },
         'camera.pan.move': {
           actions: assign({

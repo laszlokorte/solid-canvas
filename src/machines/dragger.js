@@ -8,6 +8,12 @@ export default ({x,y}) => createMachine({
   initial: "idle",
   states: {
     'idle': {
+      entry: [
+        assign({
+          prevX: null,
+          prevY: null,
+        })
+      ],
       on: {
         'dragger.grab': {
           target: "grabbed",
@@ -25,6 +31,8 @@ export default ({x,y}) => createMachine({
           actions: assign({
             offsetX: ({ context, event }) => event.x - context.x,
             offsetY: ({ context, event }) => event.y - context.y,
+            prevX: ({ context, event }) => context.x,
+            prevY: ({ context, event }) => context.y,
           }),
         },
         'dragger.release': {
@@ -49,6 +57,15 @@ export default ({x,y}) => createMachine({
           actions: assign({
             offsetX: null,
             offsetY: null,
+          }),
+        },
+        'dragger.cancel': {
+          target: 'idle',
+          actions: assign({
+            offsetX: null,
+            offsetY: null,
+            x: ({ context, event }) => (alert("x"), context.prevX),
+            y: ({ context, event }) => context.prevY,
           }),
         },
       },

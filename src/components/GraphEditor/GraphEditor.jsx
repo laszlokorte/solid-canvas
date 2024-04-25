@@ -1,4 +1,4 @@
-import { createSignal, createEffect, For, children } from "solid-js";
+import { createSignal, createEffect, For, children, onMount } from "solid-js";
 import Canvas from '../Canvas/Canvas.jsx'
 import { useViewBox } from "../Canvas/Canvas.Context";
 import styles from './GraphEditor.module.css';
@@ -104,7 +104,7 @@ function EditorContent(props) {
     }</For>
 
     <Show when={isPanning()}>
-    <circle cx={anchor().x} cy={anchor().y} r="10"></circle>
+    <circle fill="orange" cx={anchor().x} cy={anchor().y} r="10"></circle>
     </Show>
 
     <EditorCartesianAxis />
@@ -162,6 +162,19 @@ function GraphEditor() {
   const camera = fromActorRef(cameraRef)
   const [draggers, sendDraggers] = useActor(draggersMachine);
 
+  function cancel(evt) {
+    if(evt.key === 'Escape') {
+      sendDraggers({type: 'draggers.cancel'})
+    }
+  }
+
+  onMount(() => {
+    document.addEventListener('keydown', cancel)
+
+    return () => {
+      document.removeEventListener('keydown', cancel)
+    }
+  })
 
   return (<>
     <CameraProvider cameraRef={cameraRef}>
@@ -175,6 +188,8 @@ function GraphEditor() {
           <span class={styles.sliderLabel}>{() => Math.round(camera().context.zoom*100)/100}</span>
         </label>
         <button onClick={_ => sendDraggers({type: "draggers.create"})}>add</button>
+        <button onClick={_ => sendDraggers({type: "draggers.clear"})}>clear</button>
+        <button onClick={_ => cameraRef.send({type: "cam.reset"})}>reset cam</button>
       </div>
     </CameraProvider>
   </>);

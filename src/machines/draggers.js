@@ -1,4 +1,4 @@
-import { createMachine, assign } from 'xstate';
+import { createMachine, assign, enqueueActions, sendTo, stopChild } from 'xstate';
 import draggerMachine  from './dragger';
 
 export default createMachine({
@@ -18,6 +18,28 @@ export default createMachine({
               ref: spawn(draggerMachine(randomXY(idSequence)), {id: `dragger-${idSequence}`}),
             }]
           })
+        },
+        'draggers.clear': {
+          actions: [
+            assign({
+              items: []
+            }),
+            enqueueActions(({ context }) => {
+              return context.items.map((item) => {
+                return stopChild(item.ref);
+              });
+            })
+          ]
+        },
+        'draggers.cancel': {
+          actions: [
+            enqueueActions(({ context }) => {
+              return context.items.map((item) => {
+                return sendTo(item.ref, {type: 'dragger.cancel'});
+              });
+            }),
+
+          ]
         },
       },
     },
