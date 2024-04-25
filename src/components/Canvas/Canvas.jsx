@@ -23,6 +23,9 @@ function Canvas(props) {
 
   function handleMouseMove(event) {
     setPos(utils.eventToPos(viewBoxStruct, event));
+    if(props.onPointerMove) {
+      props.onPointerMove(event)
+    }
   }
 
   const [size, setSize] = createSignal({
@@ -43,8 +46,9 @@ function Canvas(props) {
     window.removeEventListener('resize', sizeHandler);
   })
 
+ 
   return (
-    <svg on:wheel={props.onWheel} ref={svg} onPointerMove={handleMouseMove} class={styles.Canvas} viewBox={viewBoxString} preserveAspectRatio={aspectString}>
+    <svg onPointerDown={props.onPointerDown} onPointerUp={props.onPointerUp} on:wheel={props.onWheel}  ref={svg} onPointerMove={handleMouseMove} class={styles.Canvas} viewBox={viewBoxString} preserveAspectRatio={aspectString}>
       <ViewBoxProvider viewBox={viewBoxStruct} svg={svg} size={size}>
         {props.children}
         

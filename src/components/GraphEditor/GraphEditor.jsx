@@ -1,14 +1,16 @@
-import { createSignal, createEffect, For } from "solid-js";
+import { createSignal, createEffect, For, children } from "solid-js";
 import Canvas from '../Canvas/Canvas.jsx'
 import { useViewBox } from "../Canvas/Canvas.Context";
 import styles from './GraphEditor.module.css';
 import * as utils from './GraphEditor.utils';
 
 import { createActor  } from 'xstate';
-import { useActor, fromActorRef } from '@xstate/solid';
+import { useActor, fromActorRef, useActorRef } from '@xstate/solid';
 import cameraMachine from '../../machines/camera';
 import draggerMachine from '../../machines/dragger';
 import draggersMachine from '../../machines/draggers';
+
+import { CameraProvider, useCamera } from "./GraphEditor.Context";
 
 function EditorCartesianAxis(props) {
   const [vb, {eventToLocal, visibleRange: vis}] = useViewBox()
@@ -26,23 +28,27 @@ function EditorCartesianAxis(props) {
 
 function EditorCartesianGrid(props) {
   const [vb, {eventToLocal, visibleRange: vis}] = useViewBox()
+  const [camera, _] = useCamera()
 
   const aspectRatio = () => (vis().max.x - vis().min.x)/(vis().max.y - vis().min.y)
   const aspectScale = () => Math.max(aspectRatio(), 1/aspectRatio())
 
   return (<>
-    <path class={styles.gridLinesCartesian} d={utils.minMaxGridPath(vis(), 32* aspectScale() * (props.camera.context.zoom))} />
+    <path class={styles.gridLinesCartesian} d={utils.minMaxGridPath(vis(), 32* aspectScale() * (camera().context.zoom))} />
   </>)
 }
 
 function EditorPolarGrid(props) {
   const [vb, {eventToLocal, visibleRange: vis}] = useViewBox()
+  const [camera, {worldToCam}] = useCamera()
+
+  const zeroPos = () => worldToCam({x:0,y:0})
 
   const aspectRatio = () => (vis().max.x - vis().min.x)/(vis().max.y - vis().min.y)
   const aspectScale = () => Math.max(aspectRatio(), 1/aspectRatio())
 
   return (<>
-    <path class={styles.gridLinesPolar} d={utils.minMaxPolarRingsPath(vis(), 64* aspectScale() * (props.camera.context.zoom))} />
+    <path class={styles.gridLinesPolar} d={utils.minMaxPolarRingsPath(vis(), 64* aspectScale() * (camera().context.zoom))} />
     <path class={styles.gridLinesPolar} d={utils.minMaxPolarRaysPath(vis(), 8)} />
   </>)
 }
@@ -50,13 +56,9 @@ function EditorPolarGrid(props) {
 function EditorNode(props) {
   const [vb, {eventToLocal, visibleRange: vis}] = useViewBox()
   const [dragger, sendDragger] =  [fromActorRef(props.dragger.ref)(), props.dragger.ref.send];
+  const [camera, {camToWorld, worldToCam}] = useCamera()
 
-  function camToWorld({x,y}) {
-    return {
-      x: x / props.camera.context.zoom,
-      y: y / props.camera.context.zoom,
-    }
-  }
+ 
 
   function grab(evt) {
     evt.currentTarget.setPointerCapture(evt.pointerId);
@@ -69,53 +71,105 @@ function EditorNode(props) {
   }
 
   function drag(evt) {
+    if(!evt.currentTarget.hasPointerCapture(evt.pointerId)) {
+      return
+    }
     sendDragger({type: 'dragger.move', ...camToWorld(eventToLocal(evt))})
   }
 
+  const draggerCamPos = () => worldToCam(dragger.context)
+  const zeroPos = () => worldToCam({x:0,y:0})
+
   return <>
-    <path class={styles.edge} d={utils.straightLinePath(0,0,dragger.context.x * props.camera.context.zoom,dragger.context.y * props.camera.context.zoom)} />
-    <circle cursor="move" onPointerDown={grab} onPointerUp={release} onPointerMove={drag} cx={dragger.context.x * props.camera.context.zoom} cy={dragger.context.y * props.camera.context.zoom} class={styles.node} r="20"/>
+    <path class={styles.edge} d={utils.straightLinePath(zeroPos().x, zeroPos().y,draggerCamPos().x,draggerCamPos().y)} />
+    <circle cursor="move" onPointerDown={grab} onPointerUp={release} onPointerMove={drag} cx={draggerCamPos().x} cy={draggerCamPos().y} class={styles.node} r="20"/>
   </>
 }
 
 function EditorContent(props) {
   const [vb, {eventToLocal, visibleRange: vis}] = useViewBox()
+  const [camera, {camToWorld, cameraSend}] = useCamera()
 
   return (<>    
     <path class={styles.paper} d={utils.minMaxRectPath(vis())} />
     <path class={styles.debugMargin} d={utils.minMaxRectPath(vis(),  5)} />
-    <EditorPolarGrid camera={props.camera} />
-    <EditorCartesianGrid camera={props.camera} />
+    <EditorPolarGrid />
+    <EditorCartesianGrid />
    
     <For each={props.draggers.context.items}>{(item, index) => 
-       <EditorNode dragger={item} camera={props.camera} />
+       <EditorNode dragger={item} />
     }</For>
 
-    <EditorCartesianAxis camera={props.camera} />
+    <EditorCartesianAxis />
   </>)
+}
+
+function GraphEditorCamControl(props) {
+  const [camera, {camToWorld, cameraSend}] = useCamera()
+  const [vb, {eventToLocal, visibleRange: vis}] = useViewBox()
+
+  function scroll(evt) {
+    cameraSend({type: 'cam.zoom.by', delta: evt.wheelDelta/500})
+  }
+
+  function grab(evt) {
+    evt.currentTarget.setPointerCapture(evt.pointerId);
+    cameraSend({type: 'camera.pan.grab', ...camToWorld(eventToLocal(evt))})
+  }
+
+  function release(evt) {
+    evt.currentTarget.releasePointerCapture(evt.pointerId);
+    cameraSend({type: 'camera.pan.release', ...camToWorld(eventToLocal(evt))})
+  }
+
+  function drag(evt) {
+    if(!evt.currentTarget.hasPointerCapture(evt.pointerId)) {
+      return
+    }
+    cameraSend({type: 'camera.pan.move', ...camToWorld(eventToLocal(evt))})
+  }
+
+  const c = children(() => props.children);
+
+  createEffect(() => {
+    c().addEventListener('wheel', scroll)
+    c().addEventListener('pointerdown', grab)
+    c().addEventListener('pointerup', release)
+    c().addEventListener('pointermove', drag)
+
+    return () => {
+      c().removeEventListener('wheel', scroll)
+      c().removeEventListener('pointerdown', grab)
+      c().removeEventListener('pointerup', release)
+      c().removeEventListener('pointermove', drag)
+    }
+  });
+
+  return <>{c()}</>
 }
 
 function GraphEditor() {
   const [zoom, setZoom] = createSignal(1);
-  const [camera, sendCam] = useActor(cameraMachine);
+  const cameraRef = useActorRef(cameraMachine);
+  const camera = fromActorRef(cameraRef)
   const [draggers, sendDraggers] = useActor(draggersMachine);
-
-  function scroll(evt) {
-    sendCam({type: 'cam.zoom.by', delta: evt.wheelDelta/500})
-  }
 
 
   return (<>
-    <Canvas onWheel={scroll}  viewBox="-512 -512 1024 1024" preserveAspectRatio="xMidYMid meet" debug={true}>
-      <EditorContent camera={camera} draggers={draggers} />
-    </Canvas>
-    <div class={styles.overlay}>
-      <label class={styles.sliderBox}>
-        <input class={styles.slider} type="range" min="1" max="10" step="0.0001" value={camera.context.zoom} onInput={e => sendCam({type: 'cam.zoom.to', target: e.currentTarget.valueAsNumber})} />
-        <span class={styles.sliderLabel}>{() => Math.round(camera.context.zoom*100)/100}</span>
-      </label>
-      <button onClick={_ => sendDraggers({type: "draggers.create"})}>add</button>
-    </div>
+    <CameraProvider cameraRef={cameraRef}>
+      <GraphEditorCamControl>
+        <Canvas viewBox="-512 -512 1024 1024" preserveAspectRatio="xMidYMid meet" debug={true}>
+          <EditorContent draggers={draggers} />
+        </Canvas>
+      </GraphEditorCamControl>
+      <div class={styles.overlay}>
+        <label class={styles.sliderBox}>
+          <input class={styles.slider} type="range" min="1" max="10" step="0.0001" value={camera().context.zoom} onInput={e => cameraRef.send({type: 'cam.zoom.to', target: e.currentTarget.valueAsNumber})} />
+          <span class={styles.sliderLabel}>{() => Math.round(camera().context.zoom*100)/100}</span>
+        </label>
+        <button onClick={_ => sendDraggers({type: "draggers.create"})}>add</button>
+      </div>
+    </CameraProvider>
   </>);
 }
 
