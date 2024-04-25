@@ -5,18 +5,18 @@ export default createMachine({
     x: 0,
     y: 0,
     zoom: 1,
-    pivotX: 0,
-    pivotY: 0,
+    anchorX: 0,
+    anchorY: 0,
   },
   initial: "resting",
   states: {
     resting: {
-      entry: {
-        actions: assign({
-          pivotX: 0,
-          pivotY: 0,
+      entry: [
+        assign({
+          anchorX: 0,
+          anchorY: 0,
         })
-      },
+      ],
       on: {
         'cam.zoom.in': {
           actions: assign({
@@ -41,13 +41,19 @@ export default createMachine({
         'camera.pan.grab': {
           target: 'panning',
           actions: assign({
-            pivotX: ({event: {x}}) => x,
-            pivotY: ({event: {y}}) => y,
+            anchorX: ({event: {x}}) => x,
+            anchorY: ({event: {y}}) => y,
           })
         }
       },
     },
     panning: {
+      entry: {
+        actions: assign({
+          anchorX: 0,
+          anchorY: 0,
+        })
+      },
       on: {
         'cam.zoom.in': {
           actions: assign({
@@ -74,8 +80,8 @@ export default createMachine({
         },
         'camera.pan.move': {
           actions: assign({
-            x: ({context: {x, pivotX}, event: {x: targetX}}) => x - targetX + pivotX,
-            y: ({context: {y, pivotY}, event: {y: targetY}}) => y - targetY + pivotY,
+            x: ({context: {x, anchorX}, event: {x: targetX}}) => x - targetX + anchorX,
+            y: ({context: {y, anchorY}, event: {y: targetY}}) => y - targetY + anchorY,
           })
         }
       },

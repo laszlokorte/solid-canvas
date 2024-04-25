@@ -23,6 +23,9 @@ export function CameraProvider(props) {
       },
       cameraSend: (action) => {
         props.cameraRef.send(action)
+      },
+      isPanning: (action) => {
+        return camera().matches('panning')
       }
     }
   ]

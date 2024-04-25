@@ -61,6 +61,7 @@ function EditorNode(props) {
  
 
   function grab(evt) {
+    evt.stopPropagation()
     evt.currentTarget.setPointerCapture(evt.pointerId);
     sendDragger({type: 'dragger.grab', ...camToWorld(eventToLocal(evt))})
   }
@@ -82,13 +83,15 @@ function EditorNode(props) {
 
   return <>
     <path class={styles.edge} d={utils.straightLinePath(zeroPos().x, zeroPos().y,draggerCamPos().x,draggerCamPos().y)} />
-    <circle cursor="move" onPointerDown={grab} onPointerUp={release} onPointerMove={drag} cx={draggerCamPos().x} cy={draggerCamPos().y} class={styles.node} r="20"/>
+    <circle cursor="move" on:pointerdown={grab} on:pointerup={release} on:pointermove={drag} cx={draggerCamPos().x} cy={draggerCamPos().y} class={styles.node} r="20"/>
   </>
 }
 
 function EditorContent(props) {
   const [vb, {eventToLocal, visibleRange: vis}] = useViewBox()
-  const [camera, {camToWorld, cameraSend}] = useCamera()
+  const [camera, {camToWorld, cameraSend, worldToCam, isPanning}] = useCamera()
+
+  const anchor = () => worldToCam({x: camera().context.anchorX, y: camera().context.anchorY})
 
   return (<>    
     <path class={styles.paper} d={utils.minMaxRectPath(vis())} />
@@ -100,19 +103,26 @@ function EditorContent(props) {
        <EditorNode dragger={item} />
     }</For>
 
+    <Show when={isPanning()}>
+    <circle cx={anchor().x} cy={anchor().y} r="10"></circle>
+    </Show>
+
     <EditorCartesianAxis />
   </>)
 }
 
 function GraphEditorCamControl(props) {
   const [camera, {camToWorld, cameraSend}] = useCamera()
-  const [vb, {eventToLocal, visibleRange: vis}] = useViewBox()
+  const [vb, {eventToLocal}] = useViewBox()
+
+  let node;
 
   function scroll(evt) {
     cameraSend({type: 'cam.zoom.by', delta: evt.wheelDelta/500})
   }
 
   function grab(evt) {
+    evt.stopPropagation()
     evt.currentTarget.setPointerCapture(evt.pointerId);
     cameraSend({type: 'camera.pan.grab', ...camToWorld(eventToLocal(evt))})
   }
@@ -129,23 +139,21 @@ function GraphEditorCamControl(props) {
     cameraSend({type: 'camera.pan.move', ...camToWorld(eventToLocal(evt))})
   }
 
-  const c = children(() => props.children);
-
   createEffect(() => {
-    c().addEventListener('wheel', scroll)
-    c().addEventListener('pointerdown', grab)
-    c().addEventListener('pointerup', release)
-    c().addEventListener('pointermove', drag)
+    node.ownerSVGElement.addEventListener('wheel', scroll)
+    node.ownerSVGElement.addEventListener('pointerdown', grab)
+    node.ownerSVGElement.addEventListener('pointerup', release)
+    node.ownerSVGElement.addEventListener('pointermove', drag)
 
     return () => {
-      c().removeEventListener('wheel', scroll)
-      c().removeEventListener('pointerdown', grab)
-      c().removeEventListener('pointerup', release)
-      c().removeEventListener('pointermove', drag)
+      node.ownerSVGElement.removeEventListener('wheel', scroll)
+      node.ownerSVGElement.removeEventListener('pointerdown', grab)
+      node.ownerSVGElement.removeEventListener('pointerup', release)
+      node.ownerSVGElement.removeEventListener('pointermove', drag)
     }
   });
 
-  return <>{c()}</>
+  return <g ref={node} />
 }
 
 function GraphEditor() {
@@ -157,11 +165,10 @@ function GraphEditor() {
 
   return (<>
     <CameraProvider cameraRef={cameraRef}>
-      <GraphEditorCamControl>
         <Canvas viewBox="-512 -512 1024 1024" preserveAspectRatio="xMidYMid meet" debug={true}>
+          <GraphEditorCamControl />
           <EditorContent draggers={draggers} />
         </Canvas>
-      </GraphEditorCamControl>
       <div class={styles.overlay}>
         <label class={styles.sliderBox}>
           <input class={styles.slider} type="range" min="1" max="10" step="0.0001" value={camera().context.zoom} onInput={e => cameraRef.send({type: 'cam.zoom.to', target: e.currentTarget.valueAsNumber})} />
