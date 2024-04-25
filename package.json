@@ -14,6 +14,8 @@
     "vite-plugin-solid": "^2.7.0"
   },
   "dependencies": {
-    "solid-js": "^1.7.6"
+    "@xstate/solid": "^0.2.0",
+    "solid-js": "^1.7.6",
+    "xstate": "^5.12.0"
   }
 }

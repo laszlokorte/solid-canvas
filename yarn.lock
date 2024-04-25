@@ -384,6 +384,11 @@
   dependencies:
     "@babel/types" "^7.20.7"
 
+"@xstate/solid@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@xstate/solid/-/solid-0.2.0.tgz#928ece696cb2d0cf0762788f60847cee4f3ad263"
+  integrity sha512-qdv3KoKiXI3jTWxkMH2R5lkQ/h0oeyq8lacIgatZMiCPNgux8Kf71CD94aA2NGDPXbUUXlHZZ6ikKM5AOXy8jA==
+
 ansi-styles@^3.2.1:
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/ansi-styles/-/ansi-styles-3.2.1.tgz#41fbb20243e50b12be0f04b8dedbf07520ce841d"
@@ -690,6 +695,11 @@ vitefu@^0.2.5:
   version "0.2.5"
   resolved "https://registry.yarnpkg.com/vitefu/-/vitefu-0.2.5.tgz#c1b93c377fbdd3e5ddd69840ea3aa70b40d90969"
   integrity sha512-SgHtMLoqaeeGnd2evZ849ZbACbnwQCIwRH57t18FxcXoZop0uQu0uzlIhJBlF/eWVzuce0sHeqPcDo+evVcg8Q==
+
+xstate@^5.12.0:
+  version "5.12.0"
+  resolved "https://registry.yarnpkg.com/xstate/-/xstate-5.12.0.tgz#3bd7b832f3cbd91a9a396a534760803487008a7e"
+  integrity sha512-4W/Hj553mwVnTLQ1itc3rni/cGtM5OkjyavTjaxCelc0ZZKE/ks6tYllc98KbekIoUrEPm4CJH/wTB5p5pPGEw==
 
 yallist@^3.0.2:
   version "3.1.1"
