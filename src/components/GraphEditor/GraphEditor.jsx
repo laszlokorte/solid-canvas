@@ -13,28 +13,38 @@ import draggersMachine from '../../machines/draggers';
 import { CameraProvider, useCamera } from "./GraphEditor.Context";
 
 function EditorCartesianAxis(props) {
+  const [camera, {worldToCam}] = useCamera()
+
+  const zeroPos = () => worldToCam({x:0,y:0})
   const [vb, {eventToLocal, visibleRange: vis}] = useViewBox()
 
   const aspectRatio = () => (vis().max.x - vis().min.x)/(vis().max.y - vis().min.y)
   const aspectScale = () => Math.max(aspectRatio(), 1/aspectRatio())
 
+  const baseX = () => props.static ? 0 : zeroPos().x
+  const baseY = () => props.static ? 0 : zeroPos().y
+
   return (<>
-    <path class={styles.axisLine} d={utils.minMaxCrossPath(vis())} />
-    <path class={styles.arrowHead} d={utils.minMaxCrossArrowPath(vis(), aspectScale() / 2)} />
-    <text font-size="18" class={[styles.axisLabel, styles.textRight, styles.textBottom].join(" ")} x={vis().max.x - 30} y="-10">X</text>
-    <text font-size="18" class={[styles.axisLabel, styles.textTop, styles.textLeft].join(" ")} x="10" y={vis().min.y + 30}>Y</text>
+    <path class={styles.axisLine} d={utils.minMaxCrossPath(vis(), baseX(), baseY())} />
+    <path class={styles.arrowHead} d={utils.minMaxCrossArrowPath(vis(), aspectScale() / 2, baseX(), baseY())} />
+    <text font-size="18" class={[styles.axisLabel, styles.textRight, styles.textBottom].join(" ")} x={vis().max.x - 30} y={baseY() - 10}>X</text>
+    <text font-size="18" class={[styles.axisLabel, styles.textTop, styles.textLeft].join(" ")} x={baseX() + 10} y={vis().min.y + 30}>Y</text>
   </>)
 }
 
 function EditorCartesianGrid(props) {
   const [vb, {eventToLocal, visibleRange: vis}] = useViewBox()
-  const [camera, _] = useCamera()
+  const [camera, {worldToCam}] = useCamera()
+
+  const zeroPos = () => worldToCam({x:0,y:0})
+  const offsetX = () => props.static ? 0 : zeroPos().x
+  const offsetY = () => props.static ? 0 : zeroPos().y
 
   const aspectRatio = () => (vis().max.x - vis().min.x)/(vis().max.y - vis().min.y)
   const aspectScale = () => Math.max(aspectRatio(), 1/aspectRatio())
 
   return (<>
-    <path class={styles.gridLinesCartesian} d={utils.minMaxGridPath(vis(), 32* aspectScale() * (camera().context.zoom))} />
+    <path class={styles.gridLinesCartesian} d={utils.minMaxGridPath(vis(), 32* aspectScale() * (camera().context.zoom), offsetX(), offsetY())} />
   </>)
 }
 
@@ -43,13 +53,15 @@ function EditorPolarGrid(props) {
   const [camera, {worldToCam}] = useCamera()
 
   const zeroPos = () => worldToCam({x:0,y:0})
+  const offsetX = () => props.static ? 0 : zeroPos().x
+  const offsetY = () => props.static ? 0 : zeroPos().y
 
   const aspectRatio = () => (vis().max.x - vis().min.x)/(vis().max.y - vis().min.y)
   const aspectScale = () => Math.max(aspectRatio(), 1/aspectRatio())
 
   return (<>
-    <path class={styles.gridLinesPolar} d={utils.minMaxPolarRingsPath(vis(), 64* aspectScale() * (camera().context.zoom))} />
-    <path class={styles.gridLinesPolar} d={utils.minMaxPolarRaysPath(vis(), 8)} />
+    <path class={styles.gridLinesPolar} d={utils.minMaxPolarRingsPath(vis(), 64 * aspectScale() * (camera().context.zoom), offsetX(), offsetY())} />
+    <path class={styles.gridLinesPolar} d={utils.minMaxPolarRaysPath(vis(), 8, 0, offsetX(), offsetY())} />
   </>)
 }
 
