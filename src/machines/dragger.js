@@ -64,7 +64,7 @@ export default ({x,y}) => createMachine({
           actions: assign({
             offsetX: null,
             offsetY: null,
-            x: ({ context, event }) => (alert("x"), context.prevX),
+            x: ({ context, event }) => context.prevX,
             y: ({ context, event }) => context.prevY,
           }),
         },

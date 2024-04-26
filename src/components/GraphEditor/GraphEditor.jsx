@@ -165,6 +165,7 @@ function GraphEditor() {
   function cancel(evt) {
     if(evt.key === 'Escape') {
       sendDraggers({type: 'draggers.cancel'})
+      cameraRef.send({type: 'camera.cancel'})
     }
   }
 

@@ -7,6 +7,8 @@ export default createMachine({
     zoom: 1,
     anchorX: 0,
     anchorY: 0,
+    prevX: 0,
+    prevY: 0,
   },
   initial: "idle",
   states: {
@@ -15,6 +17,8 @@ export default createMachine({
         assign({
           anchorX: 0,
           anchorY: 0,
+          prevX: 0,
+          prevY: 0,
         })
       ],
       on: {
@@ -52,17 +56,13 @@ export default createMachine({
           actions: assign({
             anchorX: ({event: {x}}) => x,
             anchorY: ({event: {y}}) => y,
+            prevX: ({context: {x}}) => x,
+            prevY: ({context: {y}}) => y,
           })
         }
       },
     },
     panning: {
-      entry: {
-        actions: assign({
-          anchorX: 0,
-          anchorY: 0,
-        })
-      },
       on: {
         'cam.reset': {
           actions: assign({
@@ -100,6 +100,13 @@ export default createMachine({
           actions: assign({
             x: ({context: {x, anchorX}, event: {x: targetX}}) => x - targetX + anchorX,
             y: ({context: {y, anchorY}, event: {y: targetY}}) => y - targetY + anchorY,
+          })
+        },
+        'camera.cancel': {
+          target: 'idle',
+          actions: assign({
+            x: ({context: {prevX}}) => prevX,
+            y: ({context: {prevY}}) => prevY,
           })
         }
       },
